@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.5s, color 0.5s; /* Transition priekš animacijai */
+            color: #000;
+        }
+        
+
+        .remote-control {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(80px, 1fr));
+            grid-auto-rows: minmax(80px, auto);
+            grid-gap: 10px;
+            width: 300px;
+            padding: 20px;
+            background-color: #424242;
+            border-radius: 20px;
+            background-image: linear-gradient(to bottom right, #3f3f3f, #302e2e); /* Fona gradients */
+            box-shadow: 
+                5px 5px 0 rgba(73, 80, 87, 0.8), 
+                inset -2px -2px 10px #131313;
+
+        }
+        
+        button {
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            background-color: #757575;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        button:active { /* Pogas animacija */
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        
+        
+        button:hover {
+            background-color: #616161;
+        }
+        
+        .power-button.on {
+            background-color: #d32f2f;
+        }
+        
+        .power-button.off {
+            background-color: #4caf50;
+        }
+        
+        .volumeUp-button, .volumeDown-button, .mute-button {
+            grid-column: 1 / span 3;
+        }
+
+        .power-button {
+            grid-column: 1 / span 2;
+            background-color: #4caf50;
+        }
+
+        #zeroch {
+            grid-column: 2 / span 1;
+        }
+
+        .dark-background {
+            background-color: #000;
+            color: #fff;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="TV-status">
+        <h1>TV Remote Control Emulator</h1>
+        <h2>TV Status: <span class="status">Off</span></h2>
+        <h2>Source: <span class="source">none</span></h2>
+        <h2>Volume: <span class="volume">none</span></h2>
+        <h2>Channel: <span class="channel">none</span></h2>
+    </div>
+    <main>
+    <div class="remote-control">
+        <button class="power-button">Power On</button>
+        <button class="source-button">Source</button>
+        <button class="channel-button" data-channel="1">1</button>
+        <button class="channel-button" data-channel="2">2</button>
+        <button class="channel-button" data-channel="3">3</button>
+        <button class="channel-button" data-channel="4">4</button>
+        <button class="channel-button" data-channel="5">5</button>
+        <button class="channel-button" data-channel="6">6</button>
+        <button class="channel-button" data-channel="7">7</button>
+        <button class="channel-button" data-channel="8">8</button>
+        <button class="channel-button" data-channel="9">9</button>
+        <button class="channel-button" id="zeroch" data-channel="0">0</button>
+        <button class="volumeUp-button">Vol +</button>
+        <button class="volumeDown-button">Vol -</button>
+        <button class="mute-button">Mute</button>
+    </div>
+    </main>
+
+<script>
+    const powerButton = document.querySelector('.power-button');
+    const status = document.querySelector('.status');
+    const volumeDisplay = document.querySelector('.volume');
+    const sourceDisplay = document.querySelector('.source');
+    const channelDisplay = document.querySelector('.channel');
+    const body = document.querySelector('body');
+    let volume = 5;
+    let source = 'HDMI1';
+    let channel = 'none';
+    body.classList.add('dark-background'); //Atverot parlūku pec defaulta tiek attelots melnais fons, jo televisions ir izslegts
+
+    function updateVolumeDisplay() { //Atjauno televizora skaļuma parametru
+        volumeDisplay.textContent = powerButton.classList.contains('on') ? volume : 'none';
+    }
+    function updateSourceDisplay() { //Atjauno televizora avota parametru
+        sourceDisplay.textContent = powerButton.classList.contains('on') ? source : 'none';
+    }
+    function updateChannelDisplay() { //Atjauno televizora kanala parametru
+        channelDisplay.textContent = powerButton.classList.contains('on') ? channel : 'none';
+    }
+
+    powerButton.addEventListener('click', () => { //Maina televizora statusu un fona krasu
+        const isPowerOn = !powerButton.classList.contains('on');
+        if (isPowerOn) {
+            powerOn();
+            body.classList.remove('dark-background');
+        } else {
+            powerOff();
+            body.classList.add('dark-background');
+        }
+    });
+
+    function powerOn() {
+        powerButton.classList.add('on');
+        powerButton.classList.remove('off');
+        powerButton.textContent = 'Power Off';
+        status.textContent = 'On';
+        status.classList.remove('off');
+        status.classList.add('on');
+        updateVolumeDisplay(); //Tiklidz iesledzas televizors, visi televizora stati tiek atteloti
+        updateSourceDisplay();
+        updateChannelDisplay();
+    }
+
+    function powerOff() {
+        powerButton.classList.add('off');
+        powerButton.classList.remove('on');
+        powerButton.textContent = 'Power On';
+        status.textContent = 'Off';
+        status.classList.remove('on');
+        status.classList.add('off');
+        // Izsledzot televizoru, saglaba ieprieksejas parametrus, lai iesledzot tie nebutu default vertibas
+        localStorage.setItem('tvVolume', volume.toString());
+        volume = parseInt(localStorage.getItem('tvVolume'));
+        localStorage.setItem('tvSource', source);
+        source = localStorage.getItem('tvSource');
+        localStorage.setItem('tvChannel', channel);
+        channel = localStorage.getItem('tvChannel');
+        updateVolumeDisplay(); //Tiklidz izsledzas televizors, visi televizora stati tiek slepti aiz "none"
+        updateChannelDisplay();
+        updateSourceDisplay();
+    }
+
+    document.querySelector('.volumeUp-button').addEventListener('click', () => {
+        if (powerButton.classList.contains('on') && volume < 10) {
+            volume += 1;
+            updateVolumeDisplay();
+        }
+    });
+
+    document.querySelector('.volumeDown-button').addEventListener('click', () => {
+        if (powerButton.classList.contains('on') && volume > 0) {
+            volume -= 1;
+            updateVolumeDisplay();
+        }
+    });
+
+    document.querySelector('.mute-button').addEventListener('click', () => {
+        if (powerButton.classList.contains('on')) {
+            volume = 0;
+            updateVolumeDisplay();
+        }
+    });
+
+    document.querySelectorAll('.channel-button').forEach(button => {
+        button.addEventListener('click', () => {
+            if (powerButton.classList.contains('on') && source === 'TV') {
+                const channelValue = button.dataset.channel;
+                channel = channelValue;
+                updateChannelDisplay();
+            }
+            else window.alert("Lai parslegt kanalu ir jaiesledz televizoru un jaizvelas TV avotu!") //Izvads
+        });
+    });
+
+    document.querySelector('.source-button').addEventListener('click', () => {
+        if (powerButton.classList.contains('on')) {
+            if (source === 'HDMI1') {
+                source = 'HDMI2';
+            } else if (source === 'HDMI2'){
+                source = 'AV';
+            }
+            else if (source == 'AV'){
+                source = 'TV';
+            }
+            else if (source === 'TV'){
+                source = 'HDMI1';
+            }
+            updateSourceDisplay();
+        }
+    });
+</script>
+</body>
+</html>
